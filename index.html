@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<!-- saved from url=(0041)file:///Users/haruka/Downloads/index.html -->
+<html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>衝動買いしない習慣</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link href="./index_files/css2" rel="stylesheet">
+<style>
+  :root {
+    --green:       #2cb97a;
+    --green-light: #d6f5e8;
+    --green-dark:  #1a8a58;
+    --red:         #f05c5c;
+    --red-light:   #fde8e8;
+    --amber:       #f5a623;
+    --blue:        #4a90e2;
+    --purple:      #9b6fd6;
+    --bg:          #f0ede8;
+    --card:        #ffffff;
+    --text:        #1a1a1e;
+    --sub:         #6b6b72;
+    --hint:        #b0b0b8;
+    --border:      rgba(0,0,0,0.07);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    padding-bottom: 48px;
+  }
+
+  /* ── ヘッダー ── */
+  .header {
+    background: linear-gradient(135deg, #2cb97a 0%, #4a90e2 100%);
+    padding: 22px 18px 18px;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .header .eyebrow {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+    color: rgba(255,255,255,0.7); text-transform: uppercase; margin-bottom: 5px;
+  }
+  .header h1 { font-size: 14px; font-weight: 700; color: #fff; line-height: 1.5; }
+
+  /* ── コンテンツ ── */
+  .content { padding: 14px; display: flex; flex-direction: column; gap: 12px; max-width: 480px; margin: 0 auto; }
+
+  /* ── 今日カード ── */
+  .today-card {
+    background: var(--card); border-radius: 20px;
+    padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    animation: fadein 0.3s ease both;
+  }
+  .date-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .date-text { font-size: 13px; color: var(--sub); }
+  .today-pill {
+    font-size: 11px; font-weight: 700;
+    background: linear-gradient(135deg, #2cb97a, #4a90e2);
+    color: #fff; padding: 3px 10px; border-radius: 20px;
+  }
+  .question { font-size: 13px; color: var(--sub); margin-bottom: 14px; line-height: 1.6; }
+
+  /* ○× ボタン */
+  .choice-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .choice-btn {
+    height: 82px; border-radius: 16px;
+    border: 2.5px solid transparent;
+    background: var(--bg); cursor: pointer;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 5px;
+    transition: transform 0.12s, box-shadow 0.12s, opacity 0.12s;
+    touch-action: manipulation; -webkit-user-select: none; user-select: none;
+  }
+  .choice-btn:active { transform: scale(0.94); }
+  .choice-btn .symbol { font-family: 'DM Mono', monospace; font-size: 32px; font-weight: 500; line-height: 1; }
+  .choice-btn .cap { font-size: 11px; font-weight: 700; }
+
+  .ok-idle   { border-color: var(--green-light); }
+  .ok-idle   .symbol { color: var(--green); }
+  .ok-idle   .cap    { color: var(--green); }
+  .fail-idle { border-color: var(--red-light); }
+  .fail-idle .symbol { color: var(--red); }
+  .fail-idle .cap    { color: var(--red); }
+
+  .ok-sel {
+    background: var(--green-light); border-color: var(--green);
+    box-shadow: 0 4px 18px rgba(44,185,122,0.28);
+  }
+  .ok-sel .symbol { color: var(--green-dark); }
+  .ok-sel .cap    { color: var(--green-dark); }
+
+  .fail-sel {
+    background: var(--red-light); border-color: var(--red);
+    box-shadow: 0 4px 18px rgba(240,92,92,0.22);
+  }
+  .fail-sel .symbol { color: #c03030; }
+  .fail-sel .cap    { color: #c03030; }
+
+  .dimmed { opacity: 0.32; }
+
+  /* ── ストリーク ── */
+  .streak-card {
+    border-radius: 20px; padding: 18px 20px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    animation: fadein 0.3s ease 0.04s both;
+  }
+  .streak-card.active { background: linear-gradient(135deg, #2cb97a 0%, #43c6a8 100%); }
+  .streak-card.zero   { background: var(--card); }
+
+  .streak-num { font-family: 'DM Mono', monospace; font-size: 52px; font-weight: 500; line-height: 1; min-width: 64px; }
+  .streak-card.active .streak-num { color: #fff; }
+  .streak-card.zero   .streak-num { color: var(--hint); }
+
+  .streak-meta { flex: 1; }
+  .s-day-lbl { font-size: 12px; margin-bottom: 2px; }
+  .streak-card.active .s-day-lbl { color: rgba(255,255,255,0.75); }
+  .streak-card.zero   .s-day-lbl { color: var(--hint); }
+
+  .s-msg { font-size: 14px; font-weight: 700; }
+  .streak-card.active .s-msg { color: #fff; }
+  .streak-card.zero   .s-msg { color: var(--sub); }
+
+  .streak-right { text-align: right; }
+  .s-stat { font-size: 11px; margin-bottom: 3px; }
+  .streak-card.active .s-stat      { color: rgba(255,255,255,0.7); }
+  .streak-card.active .s-stat b    { color: #fff; font-weight: 700; }
+  .streak-card.zero   .s-stat      { color: var(--hint); }
+  .streak-card.zero   .s-stat b    { color: var(--sub); font-weight: 700; }
+
+  /* ── 週間カード ── */
+  .week-card {
+    background: var(--card); border-radius: 20px; padding: 18px 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    animation: fadein 0.3s ease 0.08s both;
+  }
+  .sec-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .sec-title { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; color: var(--sub); }
+  .week-nav { display: flex; gap: 4px; }
+  .nav-btn {
+    width: 30px; height: 30px; border-radius: 9px;
+    border: 1.5px solid var(--border); background: var(--bg);
+    cursor: pointer; font-size: 16px; color: var(--sub);
+    display: flex; align-items: center; justify-content: center;
+    touch-action: manipulation;
+  }
+  .nav-btn:active { background: #e0ddd8; }
+
+  .week-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 5px; margin-bottom: 12px; }
+  .day-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .day-lbl     { font-size: 10px; color: var(--hint); }
+  .day-lbl.sun { color: #f05c5c; }
+  .day-lbl.sat { color: #4a90e2; }
+
+  .day-circle {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500;
+    color: var(--hint); background: var(--bg);
+  }
+  .day-circle.future     { color: #d0cfc8; }
+  .day-circle.unrecorded { border: 1.5px dashed #d0cfc8; color: var(--hint); }
+  .day-circle.ok {
+    background: linear-gradient(135deg, #2cb97a, #43c6a8);
+    color: #fff; font-size: 18px;
+    box-shadow: 0 3px 10px rgba(44,185,122,0.35);
+  }
+  .day-circle.fail {
+    background: linear-gradient(135deg, #f05c5c, #f57f7f);
+    color: #fff; font-size: 18px;
+    box-shadow: 0 3px 10px rgba(240,92,92,0.28);
+  }
+  .day-circle.today-ring         { box-shadow: 0 0 0 3px var(--green), 0 3px 10px rgba(44,185,122,0.35); }
+  .day-circle.today-ring.fail    { box-shadow: 0 0 0 3px var(--red),   0 3px 10px rgba(240,92,92,0.28); }
+  .day-circle.today-ring.unrecorded { box-shadow: 0 0 0 3px var(--green); }
+
+  /* 達成率バー */
+  .rate-row { display: flex; align-items: center; gap: 10px; }
+  .rate-bar { flex: 1; height: 6px; background: var(--bg); border-radius: 9px; overflow: hidden; }
+  .rate-fill { height: 100%; border-radius: 9px; transition: width 0.45s ease; }
+  .rate-pct { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; min-width: 40px; text-align: right; }
+
+  /* ── 90日ドット ── */
+  .history-card {
+    background: var(--card); border-radius: 20px; padding: 18px 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    animation: fadein 0.3s ease 0.12s both;
+  }
+  .month-block { margin-bottom: 10px; }
+  .month-lbl { font-size: 11px; color: var(--hint); margin-bottom: 5px; font-weight: 500; }
+  .dot-row { display: flex; flex-wrap: wrap; gap: 4px; }
+  .dot { width: 16px; height: 16px; border-radius: 5px; }
+  .dot.ok   { background: linear-gradient(135deg, #2cb97a, #43c6a8); }
+  .dot.fail { background: linear-gradient(135deg, #f05c5c, #f57f7f); }
+  .dot.unrecorded { background: #e2dfda; }
+  .dot.today-dot { outline: 2.5px solid var(--green); outline-offset: 1px; }
+
+  .legend { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
+  .leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--sub); }
+  .leg-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+  /* リセット */
+  .reset-wrap { text-align: center; padding-top: 4px; }
+  .reset-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 12px; color: var(--hint);
+    text-decoration: underline; font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  /* アニメ */
+  @keyframes pop     { 0%{transform:scale(1)} 35%{transform:scale(1.1)} 100%{transform:scale(1)} }
+  @keyframes fadein  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  .pop { animation: pop 0.22s ease; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="eyebrow">習慣トラッカー</div>
+  <h1>コンビニ・スーパーでお菓子・甘い飲み物・<br>お酒の衝動買いをしない</h1>
+</div>
+
+<div class="content">
+
+  <!-- 今日 -->
+  <div class="today-card">
+    <div class="date-row">
+      <div class="date-text" id="today-date">2026年4月20日（月）</div>
+      <div class="today-pill">今日</div>
+    </div>
+    <div class="question">今日、衝動買いしませんでしたか？</div>
+    <div class="choice-row">
+      <button class="choice-btn ok-idle" id="btn-ok" onclick="record(&#39;ok&#39;)">
+        <span class="symbol">○</span>
+        <span class="cap">しなかった</span>
+      </button>
+      <button class="choice-btn fail-idle" id="btn-fail" onclick="record(&#39;fail&#39;)">
+        <span class="symbol">×</span>
+        <span class="cap">してしまった</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ストリーク -->
+  <div class="streak-card zero" id="streak-card">
+    <div class="streak-num" id="streak-num">0</div>
+    <div class="streak-meta">
+      <div class="s-day-lbl">日連続達成</div>
+      <div class="s-msg" id="streak-msg">今日から始めよう！</div>
+    </div>
+    <div class="streak-right">
+      <div class="s-stat">達成 <b id="s-ok">0</b> 日</div>
+      <div class="s-stat">達成率 <b id="s-rate">—</b></div>
+    </div>
+  </div>
+
+  <!-- 週間 -->
+  <div class="week-card">
+    <div class="sec-header">
+      <div class="sec-title" id="week-label">今週</div>
+      <div class="week-nav">
+        <button class="nav-btn" onclick="changeWeek(-1)">‹</button>
+        <button class="nav-btn" onclick="changeWeek(1)">›</button>
+      </div>
+    </div>
+    <div class="week-grid" id="week-grid"><div class="day-col"><div class="day-lbl">月</div><div class="day-circle unrecorded today-ring">20</div></div><div class="day-col"><div class="day-lbl">火</div><div class="day-circle future">21</div></div><div class="day-col"><div class="day-lbl">水</div><div class="day-circle future">22</div></div><div class="day-col"><div class="day-lbl">木</div><div class="day-circle future">23</div></div><div class="day-col"><div class="day-lbl">金</div><div class="day-circle future">24</div></div><div class="day-col"><div class="day-lbl sat">土</div><div class="day-circle future">25</div></div><div class="day-col"><div class="day-lbl sun">日</div><div class="day-circle future">26</div></div></div>
+    <div class="rate-row">
+      <div class="rate-bar"><div class="rate-fill" id="rate-fill" style="width: 0%; background: linear-gradient(90deg, rgb(240, 92, 92), rgb(245, 127, 127));"></div></div>
+      <div class="rate-pct" id="rate-pct" style="color:var(--hint)">未記録</div>
+    </div>
+  </div>
+
+  <!-- 90日 -->
+  <div class="history-card">
+    <div class="sec-header">
+      <div class="sec-title">過去 90 日</div>
+    </div>
+    <div id="dot-map"><div class="month-block"><div class="month-lbl">1月</div><div class="dot-row"><div class="dot unrecorded" title="1月21日"></div><div class="dot unrecorded" title="1月22日"></div><div class="dot unrecorded" title="1月23日"></div><div class="dot unrecorded" title="1月24日"></div><div class="dot unrecorded" title="1月25日"></div><div class="dot unrecorded" title="1月26日"></div><div class="dot unrecorded" title="1月27日"></div><div class="dot unrecorded" title="1月28日"></div><div class="dot unrecorded" title="1月29日"></div><div class="dot unrecorded" title="1月30日"></div><div class="dot unrecorded" title="1月31日"></div></div></div><div class="month-block"><div class="month-lbl">2月</div><div class="dot-row"><div class="dot unrecorded" title="2月1日"></div><div class="dot unrecorded" title="2月2日"></div><div class="dot unrecorded" title="2月3日"></div><div class="dot unrecorded" title="2月4日"></div><div class="dot unrecorded" title="2月5日"></div><div class="dot unrecorded" title="2月6日"></div><div class="dot unrecorded" title="2月7日"></div><div class="dot unrecorded" title="2月8日"></div><div class="dot unrecorded" title="2月9日"></div><div class="dot unrecorded" title="2月10日"></div><div class="dot unrecorded" title="2月11日"></div><div class="dot unrecorded" title="2月12日"></div><div class="dot unrecorded" title="2月13日"></div><div class="dot unrecorded" title="2月14日"></div><div class="dot unrecorded" title="2月15日"></div><div class="dot unrecorded" title="2月16日"></div><div class="dot unrecorded" title="2月17日"></div><div class="dot unrecorded" title="2月18日"></div><div class="dot unrecorded" title="2月19日"></div><div class="dot unrecorded" title="2月20日"></div><div class="dot unrecorded" title="2月21日"></div><div class="dot unrecorded" title="2月22日"></div><div class="dot unrecorded" title="2月23日"></div><div class="dot unrecorded" title="2月24日"></div><div class="dot unrecorded" title="2月25日"></div><div class="dot unrecorded" title="2月26日"></div><div class="dot unrecorded" title="2月27日"></div><div class="dot unrecorded" title="2月28日"></div></div></div><div class="month-block"><div class="month-lbl">3月</div><div class="dot-row"><div class="dot unrecorded" title="3月1日"></div><div class="dot unrecorded" title="3月2日"></div><div class="dot unrecorded" title="3月3日"></div><div class="dot unrecorded" title="3月4日"></div><div class="dot unrecorded" title="3月5日"></div><div class="dot unrecorded" title="3月6日"></div><div class="dot unrecorded" title="3月7日"></div><div class="dot unrecorded" title="3月8日"></div><div class="dot unrecorded" title="3月9日"></div><div class="dot unrecorded" title="3月10日"></div><div class="dot unrecorded" title="3月11日"></div><div class="dot unrecorded" title="3月12日"></div><div class="dot unrecorded" title="3月13日"></div><div class="dot unrecorded" title="3月14日"></div><div class="dot unrecorded" title="3月15日"></div><div class="dot unrecorded" title="3月16日"></div><div class="dot unrecorded" title="3月17日"></div><div class="dot unrecorded" title="3月18日"></div><div class="dot unrecorded" title="3月19日"></div><div class="dot unrecorded" title="3月20日"></div><div class="dot unrecorded" title="3月21日"></div><div class="dot unrecorded" title="3月22日"></div><div class="dot unrecorded" title="3月23日"></div><div class="dot unrecorded" title="3月24日"></div><div class="dot unrecorded" title="3月25日"></div><div class="dot unrecorded" title="3月26日"></div><div class="dot unrecorded" title="3月27日"></div><div class="dot unrecorded" title="3月28日"></div><div class="dot unrecorded" title="3月29日"></div><div class="dot unrecorded" title="3月30日"></div><div class="dot unrecorded" title="3月31日"></div></div></div><div class="month-block"><div class="month-lbl">4月</div><div class="dot-row"><div class="dot unrecorded" title="4月1日"></div><div class="dot unrecorded" title="4月2日"></div><div class="dot unrecorded" title="4月3日"></div><div class="dot unrecorded" title="4月4日"></div><div class="dot unrecorded" title="4月5日"></div><div class="dot unrecorded" title="4月6日"></div><div class="dot unrecorded" title="4月7日"></div><div class="dot unrecorded" title="4月8日"></div><div class="dot unrecorded" title="4月9日"></div><div class="dot unrecorded" title="4月10日"></div><div class="dot unrecorded" title="4月11日"></div><div class="dot unrecorded" title="4月12日"></div><div class="dot unrecorded" title="4月13日"></div><div class="dot unrecorded" title="4月14日"></div><div class="dot unrecorded" title="4月15日"></div><div class="dot unrecorded" title="4月16日"></div><div class="dot unrecorded" title="4月17日"></div><div class="dot unrecorded" title="4月18日"></div><div class="dot unrecorded" title="4月19日"></div><div class="dot unrecorded today-dot" title="4月20日"></div></div></div></div>
+    <div class="legend">
+      <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>達成 ○</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--red)"></div>失敗 ×</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#e2dfda"></div>未記録</div>
+    </div>
+  </div>
+
+  <div class="reset-wrap">
+    <button class="reset-btn" onclick="resetAll()">データをリセット</button>
+  </div>
+
+</div>
+
+<script>
+const DAYS   = ['日','月','火','水','木','金','土'];
+const MONTHS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+let weekOffset = 0;
+
+function toKey(d) {
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function today() { return new Date(); }
+function load()  { try{return JSON.parse(localStorage.getItem('kohari_habit')||'{}');}catch(e){return{};} }
+function save(d) { try{localStorage.setItem('kohari_habit',JSON.stringify(d));}catch(e){} }
+
+function record(val) {
+  const data=load(), k=toKey(today());
+  if(data[k]===val) delete data[k]; else data[k]=val;
+  save(data);
+  const btn=document.getElementById(val==='ok'?'btn-ok':'btn-fail');
+  btn.classList.add('pop');
+  btn.addEventListener('animationend',()=>btn.classList.remove('pop'),{once:true});
+  render();
+}
+
+function changeWeek(dir) { weekOffset+=dir; if(weekOffset>0)weekOffset=0; render(); }
+
+function getWeekMon(off) {
+  const t=today(),day=t.getDay(),d=new Date(t);
+  d.setDate(t.getDate()-(day===0?6:day-1)+off*7);
+  d.setHours(0,0,0,0); return d;
+}
+
+function rateGrad(p) {
+  if(p>=80) return 'linear-gradient(90deg,#2cb97a,#43c6a8)';
+  if(p>=50) return 'linear-gradient(90deg,#f5a623,#f7c06e)';
+  return 'linear-gradient(90deg,#f05c5c,#f57f7f)';
+}
+function rateColor(p) {
+  if(p>=80) return 'var(--green)';
+  if(p>=50) return 'var(--amber)';
+  return 'var(--red)';
+}
+
+function render() {
+  const data=load(), now=today(), todayKey=toKey(now);
+
+  document.getElementById('today-date').textContent =
+    now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日（'+DAYS[now.getDay()]+'）';
+
+  const v=data[todayKey];
+  document.getElementById('btn-ok').className  ='choice-btn '+(v==='ok'?'ok-sel':v==='fail'?'fail-idle dimmed':'ok-idle');
+  document.getElementById('btn-fail').className='choice-btn '+(v==='fail'?'fail-sel':v==='ok'?'ok-idle dimmed':'fail-idle');
+
+  // ストリーク
+  let streak=0; const ch=new Date(now);
+  while(true){const k=toKey(ch);if(data[k]==='ok'){streak++;ch.setDate(ch.getDate()-1);}else break;}
+  const okCount =Object.keys(data).filter(k=>data[k]==='ok').length;
+  const recCount=Object.keys(data).filter(k=>data[k]).length;
+  const rate=recCount>0?Math.round(okCount/recCount*100):null;
+
+  document.getElementById('streak-num').textContent=streak;
+  document.getElementById('streak-msg').textContent=
+    streak===0?'今日から始めよう！':
+    streak>=30?'🎉 30日達成！すごい！':
+    streak>=14?'✨ 2週間突破！':
+    streak>=7 ?'🌟 1週間達成！':'この調子で！';
+  document.getElementById('s-ok').textContent   =okCount;
+  document.getElementById('s-rate').textContent =rate!==null?rate+'%':'—';
+  document.getElementById('streak-card').className='streak-card '+(streak>0?'active':'zero');
+
+  // 週間
+  const wMon=getWeekMon(weekOffset);
+  const wSun=new Date(wMon); wSun.setDate(wMon.getDate()+6);
+  document.getElementById('week-label').textContent=
+    weekOffset===0?'今週':(wMon.getMonth()+1)+'月'+wMon.getDate()+'日〜'+(wSun.getMonth()+1)+'月'+wSun.getDate()+'日';
+
+  const wg=document.getElementById('week-grid'); wg.innerHTML='';
+  let wOk=0,wRec=0;
+  for(let i=0;i<7;i++){
+    const d=new Date(wMon); d.setDate(wMon.getDate()+i);
+    const k=toKey(d),isFuture=d>now,isToday=k===todayKey,val=data[k];
+    if(!isFuture&&val==='ok'){wOk++;wRec++;}
+    else if(!isFuture&&val==='fail'){wRec++;}
+    const di=d.getDay();
+    const dlCls='day-lbl'+(di===0?' sun':di===6?' sat':'');
+    let cc='day-circle',sym=d.getDate();
+    if(!isFuture){
+      if(val==='ok'){cc+=' ok';sym='○';}
+      else if(val==='fail'){cc+=' fail';sym='×';}
+      else cc+=' unrecorded';
+    } else cc+=' future';
+    if(isToday)cc+=' today-ring';
+    wg.innerHTML+=`<div class="day-col"><div class="${dlCls}">${DAYS[di]}</div><div class="${cc}">${sym}</div></div>`;
+  }
+  const wPct=wRec>0?Math.round(wOk/wRec*100):0;
+  const rf=document.getElementById('rate-fill');
+  rf.style.width=wRec>0?wPct+'%':'0%';
+  rf.style.background=rateGrad(wPct);
+  const rp=document.getElementById('rate-pct');
+  rp.textContent=wRec>0?wPct+'%':'未記録';
+  rp.style.color=wRec>0?rateColor(wPct):'var(--hint)';
+
+  // 90日ドット
+  const start=new Date(now); start.setDate(now.getDate()-89); start.setHours(0,0,0,0);
+  const dm=document.getElementById('dot-map'); dm.innerHTML='';
+  let curM=-1,rowEl=null;
+  for(let i=0;i<90;i++){
+    const d=new Date(start); d.setDate(start.getDate()+i);
+    const m=d.getMonth();
+    if(m!==curM){
+      curM=m;
+      const block=document.createElement('div'); block.className='month-block';
+      block.innerHTML=`<div class="month-lbl">${MONTHS[m]}</div>`;
+      rowEl=document.createElement('div'); rowEl.className='dot-row';
+      block.appendChild(rowEl); dm.appendChild(block);
+    }
+    const k=toKey(d),isFuture=d>now,val=data[k];
+    const dot=document.createElement('div');
+    let dc='dot';
+    if(!isFuture){dc+=val==='ok'?' ok':val==='fail'?' fail':' unrecorded';}
+    if(k===todayKey)dc+=' today-dot';
+    dot.className=dc;
+    dot.title=(d.getMonth()+1)+'月'+d.getDate()+'日'+(val==='ok'?' ○':val==='fail'?' ×':'');
+    rowEl.appendChild(dot);
+  }
+}
+
+function resetAll(){
+  if(confirm('記録をすべて削除しますか？')){
+    try{localStorage.removeItem('kohari_habit');}catch(e){}
+    weekOffset=0; render();
+  }
+}
+
+render();
+</script>
+
+
+</body></html>
