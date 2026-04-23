@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- saved from url=(0041)file:///Users/haruka/Downloads/index.html -->
-<html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>衝動買いしない習慣</title>
-<link rel="preconnect" href="https://fonts.googleapis.com/">
-<link href="./index_files/css2" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
   :root {
     --green:       #2cb97a;
@@ -14,8 +14,6 @@
     --red:         #f05c5c;
     --red-light:   #fde8e8;
     --amber:       #f5a623;
-    --blue:        #4a90e2;
-    --purple:      #9b6fd6;
     --bg:          #f0ede8;
     --card:        #ffffff;
     --text:        #1a1a1e;
@@ -45,22 +43,119 @@
   }
   .header h1 { font-size: 14px; font-weight: 700; color: #fff; line-height: 1.5; }
 
-  /* ── コンテンツ ── */
   .content { padding: 14px; display: flex; flex-direction: column; gap: 12px; max-width: 480px; margin: 0 auto; }
 
-  /* ── 今日カード ── */
-  .today-card {
+  /* ── 記録カード ── */
+  .record-card {
     background: var(--card); border-radius: 20px;
     padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.07);
     animation: fadein 0.3s ease both;
   }
-  .date-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-  .date-text { font-size: 13px; color: var(--sub); }
+
+  /* 日付セレクター */
+  .date-selector {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+  }
+  .date-nav-btn {
+    width: 34px; height: 34px; border-radius: 10px;
+    border: 1.5px solid var(--border); background: var(--bg);
+    cursor: pointer; font-size: 18px; color: var(--sub);
+    display: flex; align-items: center; justify-content: center;
+    touch-action: manipulation; flex-shrink: 0;
+    transition: background 0.1s;
+  }
+  .date-nav-btn:active { background: #e0ddd8; }
+  .date-nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+  .date-display {
+    flex: 1; text-align: center;
+    background: var(--bg); border-radius: 10px;
+    padding: 7px 10px; cursor: pointer;
+    border: 1.5px solid var(--border);
+    transition: background 0.1s;
+  }
+  .date-display:active { background: #e0ddd8; }
+  .date-display .date-main { font-size: 14px; font-weight: 700; color: var(--text); }
+  .date-display .date-sub  { font-size: 11px; color: var(--hint); margin-top: 1px; }
+
+  /* 今日バッジ */
   .today-pill {
     font-size: 11px; font-weight: 700;
     background: linear-gradient(135deg, #2cb97a, #4a90e2);
     color: #fff; padding: 3px 10px; border-radius: 20px;
+    white-space: nowrap; flex-shrink: 0;
   }
+  .past-pill {
+    font-size: 11px; font-weight: 700;
+    background: var(--amber);
+    color: #fff; padding: 3px 10px; border-radius: 20px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+
+  /* 日付ピッカーポップアップ */
+  .picker-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.35); z-index: 100;
+    align-items: flex-end; justify-content: center;
+  }
+  .picker-overlay.open { display: flex; }
+  .picker-sheet {
+    background: var(--card); border-radius: 20px 20px 0 0;
+    padding: 20px; width: 100%; max-width: 480px;
+    animation: slideup 0.22s ease;
+  }
+  @keyframes slideup { from{transform:translateY(100%)} to{transform:translateY(0)} }
+  .picker-title {
+    font-size: 13px; font-weight: 700; color: var(--sub);
+    margin-bottom: 14px; text-align: center;
+  }
+  .picker-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
+    margin-bottom: 16px;
+  }
+  .picker-day-lbl { font-size: 10px; color: var(--hint); text-align: center; padding: 2px 0; }
+  .picker-day-lbl.sun { color: #f05c5c; }
+  .picker-day-lbl.sat { color: #4a90e2; }
+  .picker-cell {
+    aspect-ratio: 1; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 500; color: var(--text);
+    cursor: pointer; transition: background 0.1s;
+    font-family: 'DM Mono', monospace;
+    position: relative;
+  }
+  .picker-cell:active { background: var(--bg); }
+  .picker-cell.empty  { cursor: default; }
+  .picker-cell.future { color: var(--hint); cursor: default; }
+  .picker-cell.has-ok   { color: var(--green); }
+  .picker-cell.has-fail { color: var(--red); }
+  .picker-cell.selected { background: var(--text); color: #fff !important; }
+  .picker-cell.is-today { font-weight: 700; }
+  .picker-cell.is-today::after {
+    content: ''; position: absolute; bottom: 3px;
+    left: 50%; transform: translateX(-50%);
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--green);
+  }
+  .picker-cell.selected::after { background: #fff; }
+  .picker-month-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .picker-month-btn {
+    width: 32px; height: 32px; border-radius: 9px;
+    border: 1.5px solid var(--border); background: var(--bg);
+    cursor: pointer; font-size: 16px; color: var(--sub);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .picker-month-label { font-size: 14px; font-weight: 700; color: var(--text); }
+  .picker-close {
+    width: 100%; padding: 12px; border-radius: 12px;
+    border: none; background: var(--bg);
+    font-size: 14px; font-weight: 700; color: var(--sub);
+    cursor: pointer; font-family: 'Noto Sans JP', sans-serif;
+  }
+
   .question { font-size: 13px; color: var(--sub); margin-bottom: 14px; line-height: 1.6; }
 
   /* ○× ボタン */
@@ -81,24 +176,21 @@
   .ok-idle   { border-color: var(--green-light); }
   .ok-idle   .symbol { color: var(--green); }
   .ok-idle   .cap    { color: var(--green); }
-  .fail-idle { border-color: var(--red-light); }
+  .fail-idle { border-color: #fde8e8; }
   .fail-idle .symbol { color: var(--red); }
   .fail-idle .cap    { color: var(--red); }
-
   .ok-sel {
     background: var(--green-light); border-color: var(--green);
     box-shadow: 0 4px 18px rgba(44,185,122,0.28);
   }
   .ok-sel .symbol { color: var(--green-dark); }
   .ok-sel .cap    { color: var(--green-dark); }
-
   .fail-sel {
     background: var(--red-light); border-color: var(--red);
     box-shadow: 0 4px 18px rgba(240,92,92,0.22);
   }
   .fail-sel .symbol { color: #c03030; }
   .fail-sel .cap    { color: #c03030; }
-
   .dimmed { opacity: 0.32; }
 
   /* ── ストリーク ── */
@@ -110,26 +202,22 @@
   }
   .streak-card.active { background: linear-gradient(135deg, #2cb97a 0%, #43c6a8 100%); }
   .streak-card.zero   { background: var(--card); }
-
   .streak-num { font-family: 'DM Mono', monospace; font-size: 52px; font-weight: 500; line-height: 1; min-width: 64px; }
   .streak-card.active .streak-num { color: #fff; }
   .streak-card.zero   .streak-num { color: var(--hint); }
-
   .streak-meta { flex: 1; }
   .s-day-lbl { font-size: 12px; margin-bottom: 2px; }
   .streak-card.active .s-day-lbl { color: rgba(255,255,255,0.75); }
   .streak-card.zero   .s-day-lbl { color: var(--hint); }
-
   .s-msg { font-size: 14px; font-weight: 700; }
   .streak-card.active .s-msg { color: #fff; }
   .streak-card.zero   .s-msg { color: var(--sub); }
-
   .streak-right { text-align: right; }
   .s-stat { font-size: 11px; margin-bottom: 3px; }
-  .streak-card.active .s-stat      { color: rgba(255,255,255,0.7); }
-  .streak-card.active .s-stat b    { color: #fff; font-weight: 700; }
-  .streak-card.zero   .s-stat      { color: var(--hint); }
-  .streak-card.zero   .s-stat b    { color: var(--sub); font-weight: 700; }
+  .streak-card.active .s-stat   { color: rgba(255,255,255,0.7); }
+  .streak-card.active .s-stat b { color: #fff; font-weight: 700; }
+  .streak-card.zero   .s-stat   { color: var(--hint); }
+  .streak-card.zero   .s-stat b { color: var(--sub); font-weight: 700; }
 
   /* ── 週間カード ── */
   .week-card {
@@ -154,15 +242,16 @@
   .day-lbl     { font-size: 10px; color: var(--hint); }
   .day-lbl.sun { color: #f05c5c; }
   .day-lbl.sat { color: #4a90e2; }
-
   .day-circle {
     width: 38px; height: 38px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500;
     color: var(--hint); background: var(--bg);
+    cursor: pointer; transition: opacity 0.1s;
   }
-  .day-circle.future     { color: #d0cfc8; }
-  .day-circle.unrecorded { border: 1.5px dashed #d0cfc8; color: var(--hint); }
+  .day-circle:active { opacity: 0.7; }
+  .day-circle.future     { color: #d0cfc8; cursor: default; }
+  .day-circle.unrecorded { border: 1.5px dashed #d0cfc8; }
   .day-circle.ok {
     background: linear-gradient(135deg, #2cb97a, #43c6a8);
     color: #fff; font-size: 18px;
@@ -176,8 +265,8 @@
   .day-circle.today-ring         { box-shadow: 0 0 0 3px var(--green), 0 3px 10px rgba(44,185,122,0.35); }
   .day-circle.today-ring.fail    { box-shadow: 0 0 0 3px var(--red),   0 3px 10px rgba(240,92,92,0.28); }
   .day-circle.today-ring.unrecorded { box-shadow: 0 0 0 3px var(--green); }
+  .day-circle.editing-ring { box-shadow: 0 0 0 3px var(--amber) !important; }
 
-  /* 達成率バー */
   .rate-row { display: flex; align-items: center; gap: 10px; }
   .rate-bar { flex: 1; height: 6px; background: var(--bg); border-radius: 9px; overflow: hidden; }
   .rate-fill { height: 100%; border-radius: 9px; transition: width 0.45s ease; }
@@ -192,17 +281,25 @@
   .month-block { margin-bottom: 10px; }
   .month-lbl { font-size: 11px; color: var(--hint); margin-bottom: 5px; font-weight: 500; }
   .dot-row { display: flex; flex-wrap: wrap; gap: 4px; }
-  .dot { width: 16px; height: 16px; border-radius: 5px; }
-  .dot.ok   { background: linear-gradient(135deg, #2cb97a, #43c6a8); }
-  .dot.fail { background: linear-gradient(135deg, #f05c5c, #f57f7f); }
-  .dot.unrecorded { background: #e2dfda; }
-  .dot.today-dot { outline: 2.5px solid var(--green); outline-offset: 1px; }
+  .dot { width: 16px; height: 16px; border-radius: 5px; cursor: pointer; transition: transform 0.1s; }
+  .dot:active { transform: scale(0.85); }
+  .dot.ok          { background: linear-gradient(135deg, #2cb97a, #43c6a8); }
+  .dot.fail        { background: linear-gradient(135deg, #f05c5c, #f57f7f); }
+  .dot.unrecorded  { background: #e2dfda; }
+  .dot.future      { background: transparent; cursor: default; }
+  .dot.today-dot   { outline: 2.5px solid var(--green); outline-offset: 1px; }
+  .dot.editing-dot { outline: 2.5px solid var(--amber); outline-offset: 1px; }
 
   .legend { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
   .leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--sub); }
   .leg-dot { width: 12px; height: 12px; border-radius: 3px; }
 
-  /* リセット */
+  /* ヒント */
+  .hint-text {
+    font-size: 11px; color: var(--hint); text-align: center;
+    margin-top: -4px;
+  }
+
   .reset-wrap { text-align: center; padding-top: 4px; }
   .reset-btn {
     background: none; border: none; cursor: pointer;
@@ -210,9 +307,8 @@
     text-decoration: underline; font-family: 'Noto Sans JP', sans-serif;
   }
 
-  /* アニメ */
-  @keyframes pop     { 0%{transform:scale(1)} 35%{transform:scale(1.1)} 100%{transform:scale(1)} }
-  @keyframes fadein  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes pop    { 0%{transform:scale(1)} 35%{transform:scale(1.1)} 100%{transform:scale(1)} }
+  @keyframes fadein { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
   .pop { animation: pop 0.22s ease; }
 </style>
 </head>
@@ -220,24 +316,31 @@
 
 <div class="header">
   <div class="eyebrow">習慣トラッカー</div>
-  <h1>コンビニやスーパーでお菓子・甘い飲み物・<br>お酒の衝動買いをしない</h1>
+  <h1>コンビニ・スーパーでお菓子・甘い飲み物・<br>お酒の衝動買いをしない</h1>
 </div>
 
 <div class="content">
 
-  <!-- 今日 -->
-  <div class="today-card">
-    <div class="date-row">
-      <div class="date-text" id="today-date">2026年4月20日（月）</div>
-      <div class="today-pill">今日</div>
+  <!-- 記録カード -->
+  <div class="record-card">
+    <!-- 日付セレクター -->
+    <div class="date-selector">
+      <button class="date-nav-btn" id="prev-day" onclick="shiftDay(-1)">‹</button>
+      <div class="date-display" onclick="openPicker()">
+        <div class="date-main" id="editing-date-main">—</div>
+        <div class="date-sub">タップして日付を選ぶ</div>
+      </div>
+      <button class="date-nav-btn" id="next-day" onclick="shiftDay(1)">›</button>
+      <div id="day-pill" class="today-pill">今日</div>
     </div>
-    <div class="question">今日、衝動買いしませんでしたか？</div>
+
+    <div class="question" id="record-question">この日、衝動買いしませんでしたか？</div>
     <div class="choice-row">
-      <button class="choice-btn ok-idle" id="btn-ok" onclick="record(&#39;ok&#39;)">
+      <button class="choice-btn ok-idle" id="btn-ok" onclick="record('ok')">
         <span class="symbol">○</span>
         <span class="cap">しなかった</span>
       </button>
-      <button class="choice-btn fail-idle" id="btn-fail" onclick="record(&#39;fail&#39;)">
+      <button class="choice-btn fail-idle" id="btn-fail" onclick="record('fail')">
         <span class="symbol">×</span>
         <span class="cap">してしまった</span>
       </button>
@@ -249,10 +352,10 @@
     <div class="streak-num" id="streak-num">0</div>
     <div class="streak-meta">
       <div class="s-day-lbl">日連続達成</div>
-      <div class="s-msg" id="streak-msg">今日から始めよう！</div>
+      <div class="s-msg" id="streak-msg">記録をつけよう</div>
     </div>
     <div class="streak-right">
-      <div class="s-stat">達成 <b id="s-ok">0</b> 日</div>
+      <div class="s-stat">達成 <b id="s-ok">—</b> 日</div>
       <div class="s-stat">達成率 <b id="s-rate">—</b></div>
     </div>
   </div>
@@ -266,54 +369,164 @@
         <button class="nav-btn" onclick="changeWeek(1)">›</button>
       </div>
     </div>
-    <div class="week-grid" id="week-grid"><div class="day-col"><div class="day-lbl">月</div><div class="day-circle unrecorded today-ring">20</div></div><div class="day-col"><div class="day-lbl">火</div><div class="day-circle future">21</div></div><div class="day-col"><div class="day-lbl">水</div><div class="day-circle future">22</div></div><div class="day-col"><div class="day-lbl">木</div><div class="day-circle future">23</div></div><div class="day-col"><div class="day-lbl">金</div><div class="day-circle future">24</div></div><div class="day-col"><div class="day-lbl sat">土</div><div class="day-circle future">25</div></div><div class="day-col"><div class="day-lbl sun">日</div><div class="day-circle future">26</div></div></div>
+    <div class="week-grid" id="week-grid"></div>
     <div class="rate-row">
-      <div class="rate-bar"><div class="rate-fill" id="rate-fill" style="width: 0%; background: linear-gradient(90deg, rgb(240, 92, 92), rgb(245, 127, 127));"></div></div>
-      <div class="rate-pct" id="rate-pct" style="color:var(--hint)">未記録</div>
+      <div class="rate-bar"><div class="rate-fill" id="rate-fill"></div></div>
+      <div class="rate-pct" id="rate-pct" style="color:var(--hint)">—</div>
     </div>
   </div>
+  <div class="hint-text">週のマスをタップしても日付を選べます</div>
 
   <!-- 90日 -->
   <div class="history-card">
     <div class="sec-header">
       <div class="sec-title">過去 90 日</div>
     </div>
-    <div id="dot-map"><div class="month-block"><div class="month-lbl">1月</div><div class="dot-row"><div class="dot unrecorded" title="1月21日"></div><div class="dot unrecorded" title="1月22日"></div><div class="dot unrecorded" title="1月23日"></div><div class="dot unrecorded" title="1月24日"></div><div class="dot unrecorded" title="1月25日"></div><div class="dot unrecorded" title="1月26日"></div><div class="dot unrecorded" title="1月27日"></div><div class="dot unrecorded" title="1月28日"></div><div class="dot unrecorded" title="1月29日"></div><div class="dot unrecorded" title="1月30日"></div><div class="dot unrecorded" title="1月31日"></div></div></div><div class="month-block"><div class="month-lbl">2月</div><div class="dot-row"><div class="dot unrecorded" title="2月1日"></div><div class="dot unrecorded" title="2月2日"></div><div class="dot unrecorded" title="2月3日"></div><div class="dot unrecorded" title="2月4日"></div><div class="dot unrecorded" title="2月5日"></div><div class="dot unrecorded" title="2月6日"></div><div class="dot unrecorded" title="2月7日"></div><div class="dot unrecorded" title="2月8日"></div><div class="dot unrecorded" title="2月9日"></div><div class="dot unrecorded" title="2月10日"></div><div class="dot unrecorded" title="2月11日"></div><div class="dot unrecorded" title="2月12日"></div><div class="dot unrecorded" title="2月13日"></div><div class="dot unrecorded" title="2月14日"></div><div class="dot unrecorded" title="2月15日"></div><div class="dot unrecorded" title="2月16日"></div><div class="dot unrecorded" title="2月17日"></div><div class="dot unrecorded" title="2月18日"></div><div class="dot unrecorded" title="2月19日"></div><div class="dot unrecorded" title="2月20日"></div><div class="dot unrecorded" title="2月21日"></div><div class="dot unrecorded" title="2月22日"></div><div class="dot unrecorded" title="2月23日"></div><div class="dot unrecorded" title="2月24日"></div><div class="dot unrecorded" title="2月25日"></div><div class="dot unrecorded" title="2月26日"></div><div class="dot unrecorded" title="2月27日"></div><div class="dot unrecorded" title="2月28日"></div></div></div><div class="month-block"><div class="month-lbl">3月</div><div class="dot-row"><div class="dot unrecorded" title="3月1日"></div><div class="dot unrecorded" title="3月2日"></div><div class="dot unrecorded" title="3月3日"></div><div class="dot unrecorded" title="3月4日"></div><div class="dot unrecorded" title="3月5日"></div><div class="dot unrecorded" title="3月6日"></div><div class="dot unrecorded" title="3月7日"></div><div class="dot unrecorded" title="3月8日"></div><div class="dot unrecorded" title="3月9日"></div><div class="dot unrecorded" title="3月10日"></div><div class="dot unrecorded" title="3月11日"></div><div class="dot unrecorded" title="3月12日"></div><div class="dot unrecorded" title="3月13日"></div><div class="dot unrecorded" title="3月14日"></div><div class="dot unrecorded" title="3月15日"></div><div class="dot unrecorded" title="3月16日"></div><div class="dot unrecorded" title="3月17日"></div><div class="dot unrecorded" title="3月18日"></div><div class="dot unrecorded" title="3月19日"></div><div class="dot unrecorded" title="3月20日"></div><div class="dot unrecorded" title="3月21日"></div><div class="dot unrecorded" title="3月22日"></div><div class="dot unrecorded" title="3月23日"></div><div class="dot unrecorded" title="3月24日"></div><div class="dot unrecorded" title="3月25日"></div><div class="dot unrecorded" title="3月26日"></div><div class="dot unrecorded" title="3月27日"></div><div class="dot unrecorded" title="3月28日"></div><div class="dot unrecorded" title="3月29日"></div><div class="dot unrecorded" title="3月30日"></div><div class="dot unrecorded" title="3月31日"></div></div></div><div class="month-block"><div class="month-lbl">4月</div><div class="dot-row"><div class="dot unrecorded" title="4月1日"></div><div class="dot unrecorded" title="4月2日"></div><div class="dot unrecorded" title="4月3日"></div><div class="dot unrecorded" title="4月4日"></div><div class="dot unrecorded" title="4月5日"></div><div class="dot unrecorded" title="4月6日"></div><div class="dot unrecorded" title="4月7日"></div><div class="dot unrecorded" title="4月8日"></div><div class="dot unrecorded" title="4月9日"></div><div class="dot unrecorded" title="4月10日"></div><div class="dot unrecorded" title="4月11日"></div><div class="dot unrecorded" title="4月12日"></div><div class="dot unrecorded" title="4月13日"></div><div class="dot unrecorded" title="4月14日"></div><div class="dot unrecorded" title="4月15日"></div><div class="dot unrecorded" title="4月16日"></div><div class="dot unrecorded" title="4月17日"></div><div class="dot unrecorded" title="4月18日"></div><div class="dot unrecorded" title="4月19日"></div><div class="dot unrecorded today-dot" title="4月20日"></div></div></div></div>
+    <div id="dot-map"></div>
     <div class="legend">
       <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>達成 ○</div>
       <div class="leg-item"><div class="leg-dot" style="background:var(--red)"></div>失敗 ×</div>
       <div class="leg-item"><div class="leg-dot" style="background:#e2dfda"></div>未記録</div>
     </div>
   </div>
+  <div class="hint-text">ドットをタップしても日付を選べます</div>
 
   <div class="reset-wrap">
     <button class="reset-btn" onclick="resetAll()">データをリセット</button>
   </div>
+</div>
 
+<!-- 日付ピッカー -->
+<div class="picker-overlay" id="picker-overlay" onclick="closePicker(event)">
+  <div class="picker-sheet">
+    <div class="picker-title">日付を選んで記録</div>
+    <div class="picker-month-nav">
+      <button class="picker-month-btn" onclick="shiftPickerMonth(-1)">‹</button>
+      <div class="picker-month-label" id="picker-month-label">—</div>
+      <button class="picker-month-btn" onclick="shiftPickerMonth(1)">›</button>
+    </div>
+    <div class="picker-grid" id="picker-grid"></div>
+    <button class="picker-close" onclick="closePicker()">閉じる</button>
+  </div>
 </div>
 
 <script>
 const DAYS   = ['日','月','火','水','木','金','土'];
 const MONTHS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
-let weekOffset = 0;
 
 function toKey(d) {
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
-function today() { return new Date(); }
+function fromKey(k) {
+  const [y,m,d] = k.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function today() { const d=new Date(); d.setHours(0,0,0,0); return d; }
 function load()  { try{return JSON.parse(localStorage.getItem('kohari_habit')||'{}');}catch(e){return{};} }
 function save(d) { try{localStorage.setItem('kohari_habit',JSON.stringify(d));}catch(e){} }
 
+// 編集中の日付（デフォルト:今日）
+let editingKey = toKey(today());
+let weekOffset = 0;
+let pickerMonth = new Date(today().getFullYear(), today().getMonth(), 1);
+
+/* ── 日付移動 ── */
+function shiftDay(dir) {
+  const d = fromKey(editingKey);
+  d.setDate(d.getDate() + dir);
+  if (d > today()) return;
+  editingKey = toKey(d);
+  render();
+}
+
+function jumpToDate(key) {
+  const d = fromKey(key);
+  if (d > today()) return;
+  editingKey = key;
+  // 週グリッドがその日を含む週に合わせる
+  const t = today(), tDay = t.getDay();
+  const thisMon = new Date(t);
+  thisMon.setDate(t.getDate() - (tDay===0?6:tDay-1));
+  const editD = fromKey(key);
+  const diff = Math.floor((thisMon - editD) / (7*24*3600*1000));
+  weekOffset = diff > 0 ? -diff : 0;
+  closePicker();
+  render();
+}
+
+/* ── 記録 ── */
 function record(val) {
-  const data=load(), k=toKey(today());
-  if(data[k]===val) delete data[k]; else data[k]=val;
+  const data = load();
+  if (data[editingKey] === val) delete data[editingKey];
+  else data[editingKey] = val;
   save(data);
-  const btn=document.getElementById(val==='ok'?'btn-ok':'btn-fail');
+  const btn = document.getElementById(val==='ok'?'btn-ok':'btn-fail');
   btn.classList.add('pop');
   btn.addEventListener('animationend',()=>btn.classList.remove('pop'),{once:true});
   render();
 }
 
+/* ── ピッカー ── */
+function openPicker() {
+  pickerMonth = new Date(fromKey(editingKey).getFullYear(), fromKey(editingKey).getMonth(), 1);
+  renderPicker();
+  document.getElementById('picker-overlay').classList.add('open');
+}
+function closePicker(e) {
+  if (e && e.target !== document.getElementById('picker-overlay')) return;
+  document.getElementById('picker-overlay').classList.remove('open');
+}
+function shiftPickerMonth(dir) {
+  pickerMonth.setMonth(pickerMonth.getMonth() + dir);
+  const t = today();
+  if (pickerMonth > new Date(t.getFullYear(), t.getMonth(), 1))
+    pickerMonth = new Date(t.getFullYear(), t.getMonth(), 1);
+  renderPicker();
+}
+function renderPicker() {
+  const data = load();
+  const t = today();
+  document.getElementById('picker-month-label').textContent =
+    pickerMonth.getFullYear()+'年'+(pickerMonth.getMonth()+1)+'月';
+  const grid = document.getElementById('picker-grid');
+  grid.innerHTML = '';
+  // 曜日ヘッダー
+  DAYS.forEach((d,i)=>{
+    const el=document.createElement('div');
+    el.className='picker-day-lbl'+(i===0?' sun':i===6?' sat':'');
+    el.textContent=d; grid.appendChild(el);
+  });
+  // 月初の空白
+  const firstDay = new Date(pickerMonth.getFullYear(), pickerMonth.getMonth(), 1).getDay();
+  for(let i=0;i<firstDay;i++){
+    const el=document.createElement('div'); el.className='picker-cell empty'; grid.appendChild(el);
+  }
+  // 日付
+  const daysInMonth = new Date(pickerMonth.getFullYear(), pickerMonth.getMonth()+1, 0).getDate();
+  for(let d=1;d<=daysInMonth;d++){
+    const date = new Date(pickerMonth.getFullYear(), pickerMonth.getMonth(), d);
+    const k = toKey(date);
+    const isFuture = date > t;
+    const isToday  = k === toKey(t);
+    const isEditing= k === editingKey;
+    const val = data[k];
+    let cls = 'picker-cell';
+    if(isFuture) cls+=' future';
+    else {
+      if(val==='ok')   cls+=' has-ok';
+      if(val==='fail') cls+=' has-fail';
+    }
+    if(isToday)   cls+=' is-today';
+    if(isEditing) cls+=' selected';
+    const el = document.createElement('div');
+    el.className = cls;
+    el.textContent = d;
+    if(!isFuture) el.onclick = ()=>jumpToDate(k);
+    grid.appendChild(el);
+  }
+}
+
+/* ── 週ナビ ── */
 function changeWeek(dir) { weekOffset+=dir; if(weekOffset>0)weekOffset=0; render(); }
 
 function getWeekMon(off) {
@@ -333,23 +546,34 @@ function rateColor(p) {
   return 'var(--red)';
 }
 
+/* ── メイン描画 ── */
 function render() {
   const data=load(), now=today(), todayKey=toKey(now);
+  const isToday = editingKey===todayKey;
+  const editD   = fromKey(editingKey);
 
-  document.getElementById('today-date').textContent =
-    now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日（'+DAYS[now.getDay()]+'）';
+  // 日付表示
+  document.getElementById('editing-date-main').textContent =
+    editD.getFullYear()+'年'+(editD.getMonth()+1)+'月'+editD.getDate()+'日（'+DAYS[editD.getDay()]+'）';
+  const pill = document.getElementById('day-pill');
+  if(isToday){ pill.className='today-pill'; pill.textContent='今日'; }
+  else       { pill.className='past-pill';  pill.textContent='過去'; }
 
-  const v=data[todayKey];
+  // ‹ › ボタン
+  document.getElementById('prev-day').disabled = false;
+  document.getElementById('next-day').disabled = isToday;
+
+  // ○×ボタン
+  const v=data[editingKey];
   document.getElementById('btn-ok').className  ='choice-btn '+(v==='ok'?'ok-sel':v==='fail'?'fail-idle dimmed':'ok-idle');
   document.getElementById('btn-fail').className='choice-btn '+(v==='fail'?'fail-sel':v==='ok'?'ok-idle dimmed':'fail-idle');
 
-  // ストリーク
+  // ストリーク（今日起点で計算）
   let streak=0; const ch=new Date(now);
   while(true){const k=toKey(ch);if(data[k]==='ok'){streak++;ch.setDate(ch.getDate()-1);}else break;}
   const okCount =Object.keys(data).filter(k=>data[k]==='ok').length;
   const recCount=Object.keys(data).filter(k=>data[k]).length;
   const rate=recCount>0?Math.round(okCount/recCount*100):null;
-
   document.getElementById('streak-num').textContent=streak;
   document.getElementById('streak-msg').textContent=
     streak===0?'今日から始めよう！':
@@ -360,7 +584,7 @@ function render() {
   document.getElementById('s-rate').textContent =rate!==null?rate+'%':'—';
   document.getElementById('streak-card').className='streak-card '+(streak>0?'active':'zero');
 
-  // 週間
+  // 週間グリッド
   const wMon=getWeekMon(weekOffset);
   const wSun=new Date(wMon); wSun.setDate(wMon.getDate()+6);
   document.getElementById('week-label').textContent=
@@ -370,7 +594,8 @@ function render() {
   let wOk=0,wRec=0;
   for(let i=0;i<7;i++){
     const d=new Date(wMon); d.setDate(wMon.getDate()+i);
-    const k=toKey(d),isFuture=d>now,isToday=k===todayKey,val=data[k];
+    const k=toKey(d),isFuture=d>now,isT=k===todayKey,isEditing=k===editingKey;
+    const val=data[k];
     if(!isFuture&&val==='ok'){wOk++;wRec++;}
     else if(!isFuture&&val==='fail'){wRec++;}
     const di=d.getDay();
@@ -381,8 +606,13 @@ function render() {
       else if(val==='fail'){cc+=' fail';sym='×';}
       else cc+=' unrecorded';
     } else cc+=' future';
-    if(isToday)cc+=' today-ring';
-    wg.innerHTML+=`<div class="day-col"><div class="${dlCls}">${DAYS[di]}</div><div class="${cc}">${sym}</div></div>`;
+    if(isT&&!isEditing) cc+=' today-ring';
+    if(isEditing)       cc+=' editing-ring';
+    const clickable = !isFuture;
+    wg.innerHTML+=`<div class="day-col">
+      <div class="${dlCls}">${DAYS[di]}</div>
+      <div class="${cc}" ${clickable?`onclick="jumpToDate('${k}')"`:''} style="${clickable?'cursor:pointer':'cursor:default'}">${sym}</div>
+    </div>`;
   }
   const wPct=wRec>0?Math.round(wOk/wRec*100):0;
   const rf=document.getElementById('rate-fill');
@@ -409,10 +639,13 @@ function render() {
     const k=toKey(d),isFuture=d>now,val=data[k];
     const dot=document.createElement('div');
     let dc='dot';
-    if(!isFuture){dc+=val==='ok'?' ok':val==='fail'?' fail':' unrecorded';}
-    if(k===todayKey)dc+=' today-dot';
+    if(isFuture) dc+=' future';
+    else dc+=val==='ok'?' ok':val==='fail'?' fail':' unrecorded';
+    if(k===todayKey&&k!==editingKey)    dc+=' today-dot';
+    if(k===editingKey) dc+=' editing-dot';
     dot.className=dc;
     dot.title=(d.getMonth()+1)+'月'+d.getDate()+'日'+(val==='ok'?' ○':val==='fail'?' ×':'');
+    if(!isFuture) dot.onclick=()=>jumpToDate(k);
     rowEl.appendChild(dot);
   }
 }
@@ -420,12 +653,11 @@ function render() {
 function resetAll(){
   if(confirm('記録をすべて削除しますか？')){
     try{localStorage.removeItem('kohari_habit');}catch(e){}
-    weekOffset=0; render();
+    editingKey=toKey(today()); weekOffset=0; render();
   }
 }
 
 render();
 </script>
-
-
-</body></html>
+</body>
+</html>
